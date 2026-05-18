@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,8 +23,8 @@ type Event struct {
 }
 
 type Message struct {
-	Type    string `db:"type"`
-	Payload string `db:"type"`
+	Type    string          `db:"type"`
+	Payload json.RawMessage `json:"payload,omitempty"`
 }
 
 type Drawpayload struct {
