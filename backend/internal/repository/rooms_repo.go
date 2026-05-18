@@ -41,8 +41,8 @@ func (r *Roomrepo) Getbycode(code string) (*domain.Room, error) {
 	return &room, nil
 }
 
-func (r *Roomrepo) List() (*[]domain.Room, error) {
-	var rooms *[]domain.Room
+func (r *Roomrepo) List() ([]*domain.Room, error) {
+	var rooms []*domain.Room
 
 	err := r.db.Select(&rooms, `SELECT id, code, name, created_at FROM rooms ORDER BY created_at DESC`)
 

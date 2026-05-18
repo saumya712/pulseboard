@@ -5,10 +5,11 @@ import (
 	"log"
 
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
-func newpostgress(databaseurl string) *sqlx.DB {
-	db, err := sqlx.Connect("postgress", databaseurl)
+func Newpostgress(databaseurl string) *sqlx.DB {
+	db, err := sqlx.Connect("postgres", databaseurl)
 	if err != nil {
 		log.Fatalf("FATAL: could not connect with the database %v", err)
 	}

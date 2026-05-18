@@ -10,15 +10,15 @@ type Room struct {
 	Id        uuid.UUID `db:"id"`
 	Code      string    `db:"code"`
 	Name      string    `db:"name"`
-	CreatedAt time.Time `db:"createdat"`
+	CreatedAt time.Time `db:"created_at"`
 }
 
 type Event struct {
 	Id        int64     `db:"id"`
-	Roomid    uuid.UUID `db:"roomid"`
+	Roomid    uuid.UUID `db:"room_id"`
 	Type      string    `db:"type"`
 	Payload   []byte    `db:"payload"`
-	Createdat time.Time `db:"createdat"`
+	Createdat time.Time `db:"created_at"`
 }
 
 type Message struct {
@@ -55,7 +55,7 @@ type Syncpayload struct {
 type Roomrepository interface {
 	Create(room *Room) error
 	Getbycode(code string) (*Room, error)
-	List() (*[]Room, error)
+	List() ([]*Room, error)
 }
 
 type Eventrepository interface {
