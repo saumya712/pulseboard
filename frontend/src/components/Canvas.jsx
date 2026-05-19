@@ -169,7 +169,7 @@ export default function Canvas({ tool, color, width, onDrawEvent, onDrawRef }) {
     <canvas
       ref={canvasRef}
       className="w-full h-full touch-none"
-      style={{ cursor: tool === 'eraser' ? 'cell' : 'crosshair', background: '#0a0a0f' }}
+      style={{ cursor: tool === 'eraser' ? 'cell' : 'crosshair', background: '#ffffff' }}
       onMouseDown={onPointerDown}
       onMouseMove={onPointerMove}
       onMouseUp={onPointerUp}

@@ -1,65 +1,39 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom'
-import Canvas   from '../components/Canvas'
-import Toolbar  from '../components/Toolbar'
-import Chat     from '../components/Chat'
+import Canvas      from '../components/Canvas'
+import Toolbar     from '../components/Toolbar'
+import Chat        from '../components/Chat'
 import useWebSocket from '../hooks/useWebSocket'
 
-function PulseIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-    </svg>
-  )
-}
-
-function CopyIcon({ size = 12 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-    </svg>
-  )
-}
-
 export default function BoardPage() {
-  const { code }                      = useParams()
-  const [searchParams]                = useSearchParams()
-  const navigate                      = useNavigate()
-  const username                      = searchParams.get('username') || 'Anonymous'
+  const { code }           = useParams()
+  const [searchParams]     = useSearchParams()
+  const navigate           = useNavigate()
+  const username           = searchParams.get('username') || 'Anonymous'
 
-  const [tool,      setTool]          = useState('pen')
-  const [color,     setColor]         = useState('#00ff88')
-  const [width,     setWidth]         = useState(4)
-  const [showChat,  setShowChat]      = useState(true)
-  const [copied,    setCopied]        = useState(false)
+  const [tool,      setTool]      = useState('pen')
+  const [color,     setColor]     = useState('#111827')
+  const [width,     setWidth]     = useState(4)
+  const [chatOpen,  setChatOpen]  = useState(false)
+  const [copied,    setCopied]    = useState(false)
 
   const { connected, users, messages, send, onDrawRef } = useWebSocket(code, username)
 
-  // Redirect if no username
   useEffect(() => {
     if (!searchParams.get('username')) navigate('/')
   }, [])
 
-  // Called by Canvas when user draws locally
-  // Sends the draw event over WebSocket
   const handleDrawEvent = useCallback((payload) => {
     send('draw', payload)
   }, [send])
 
-  // Called when user clicks clear button
   const handleClear = useCallback(() => {
     if (!confirm('Clear the canvas for everyone?')) return
     send('clear', {})
-    // Local canvas will clear when the server echoes the clear event back
   }, [send])
 
-  // Called when user sends a chat message
   const handleChat = useCallback((text) => {
-    send('chat', {
-      user:      username,
-      text,
-      timestamp: new Date().toISOString(),
-    })
+    send('chat', { user: username, text, timestamp: new Date().toISOString() })
   }, [send, username])
 
   const copyCode = () => {
@@ -69,62 +43,25 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="h-screen bg-vault-bg flex flex-col overflow-hidden">
+    <div className="h-screen flex flex-col bg-white overflow-hidden">
 
-      {/* Top bar */}
-      <header className="shrink-0 h-12 border-b border-vault-border/60 flex items-center justify-between px-4 bg-vault-surface/50">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="flex items-center gap-1.5 text-neon-green hover:opacity-80 transition-opacity">
-            <PulseIcon />
-            <span className="font-mono font-bold text-sm hidden sm:block">
-              <span className="text-neon-green">PULSE</span>
-              <span className="text-gray-300">BOARD</span>
-            </span>
-          </Link>
+      {/* Top toolbar */}
+      <header className="shrink-0 h-14 border-b border-gray-100 flex items-center px-4 gap-4 bg-white shadow-sm">
 
-          <div className="w-px h-4 bg-vault-border" />
-
-          {/* Room code + copy */}
-          <button onClick={copyCode}
-            className="flex items-center gap-1.5 font-mono text-xs px-2.5 py-1 rounded border transition-all duration-200 border-vault-border text-gray-400 hover:border-neon-green/30 hover:text-neon-green">
-            <span className="tracking-widest">{code}</span>
-            <CopyIcon />
-            {copied && <span className="text-neon-green">✓</span>}
-          </button>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Connection status */}
-          <div className="flex items-center gap-1.5">
-            <div className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-neon-green animate-pulse-slow' : 'bg-neon-red'}`} />
-            <span className={`font-mono text-xs ${connected ? 'text-neon-green/70' : 'text-neon-red/70'}`}>
-              {connected ? 'LIVE' : 'OFFLINE'}
-            </span>
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2 shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-purple to-brand-pink flex items-center justify-center">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
           </div>
+          <span className="font-bold text-sm text-gray-900 hidden sm:block">PulseBoard</span>
+        </Link>
 
-          {/* Online users */}
-          <div className="badge-online">
-            <span>{users.length}</span>
-            <span>online</span>
-          </div>
+        <div className="w-px h-6 bg-gray-200 shrink-0" />
 
-          {/* Chat toggle */}
-          <button onClick={() => setShowChat(!showChat)}
-            className={`font-mono text-xs px-2.5 py-1 rounded border transition-all duration-200 ${
-              showChat
-                ? 'border-neon-cyan/30 text-neon-cyan bg-neon-cyan/5'
-                : 'border-vault-border text-gray-500 hover:border-vault-muted'
-            }`}>
-            CHAT {messages.filter(m => !m.system).length > 0 && `(${messages.filter(m => !m.system).length})`}
-          </button>
-        </div>
-      </header>
-
-      {/* Main area */}
-      <div className="flex-1 flex overflow-hidden">
-
-        {/* Toolbar — left side */}
-        <div className="shrink-0 w-14 p-2 border-r border-vault-border/60 flex items-start">
+        {/* Drawing tools — takes remaining space */}
+        <div className="flex-1 flex items-center">
           <Toolbar
             tool={tool}   setTool={setTool}
             color={color} setColor={setColor}
@@ -133,58 +70,88 @@ export default function BoardPage() {
           />
         </div>
 
-        {/* Canvas — center */}
-        <div className="flex-1 relative overflow-hidden">
+        {/* Right side info */}
+        <div className="flex items-center gap-3 shrink-0">
+          {/* Room code */}
+          <button onClick={copyCode}
+            className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-mono font-medium text-gray-600 hover:border-brand-purple hover:text-brand-purple transition-all">
+            {code}
+            <span className="text-gray-400">{copied ? '✓' : '⎘'}</span>
+          </button>
+
+          {/* Online users */}
+          <div className="flex items-center gap-1.5 bg-green-50 border border-green-100 rounded-lg px-2.5 py-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse-dot" />
+            <span className="text-xs font-medium text-brand-green">{users.length} online</span>
+          </div>
+
+          {/* Connection status */}
           {!connected && (
-            <div className="absolute inset-0 bg-vault-bg/80 flex items-center justify-center z-10">
-              <div className="text-center">
-                <div className="font-mono text-sm text-neon-amber mb-2">Connecting...</div>
-                <div className="font-mono text-xs text-gray-500">Establishing WebSocket connection</div>
-              </div>
+            <div className="flex items-center gap-1.5 bg-red-50 border border-red-100 rounded-lg px-2.5 py-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+              <span className="text-xs font-medium text-red-500">Offline</span>
             </div>
           )}
-          <Canvas
-            tool={tool}
-            color={color}
-            width={width}
-            onDrawEvent={handleDrawEvent}
-            onDrawRef={onDrawRef}
-          />
         </div>
+      </header>
 
-        {/* Chat — right side */}
-        {showChat && (
-          <div className="shrink-0 w-64 border-l border-vault-border/60 p-2">
-            <Chat
-              messages={messages}
-              onSend={handleChat}
-              username={username}
-            />
+      {/* Canvas — full remaining space */}
+      <div className="flex-1 relative overflow-hidden">
+        {!connected && (
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10">
+            <div className="text-center">
+              <div className="w-10 h-10 border-2 border-brand-purple border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-sm font-medium text-gray-700">Connecting...</p>
+              <p className="text-xs text-gray-400 mt-1">Establishing WebSocket connection</p>
+            </div>
           </div>
         )}
+        <Canvas
+          tool={tool}
+          color={color}
+          width={width}
+          onDrawEvent={handleDrawEvent}
+          onDrawRef={onDrawRef}
+        />
       </div>
 
-      {/* Bottom status bar */}
-      <div className="shrink-0 h-7 border-t border-vault-border/40 flex items-center justify-between px-4 bg-vault-surface/30">
+      {/* User bar — bottom */}
+      <div className="shrink-0 h-8 border-t border-gray-100 flex items-center justify-between px-4 bg-gray-50">
         <div className="flex items-center gap-3">
-          <span className="font-mono text-xs text-gray-600">
-            Tool: <span className="text-gray-400">{tool}</span>
+          <span className="text-xs text-gray-400">
+            Tool: <span className="text-gray-600 font-medium">{tool}</span>
           </span>
-          <span className="font-mono text-xs text-gray-600">
-            Size: <span className="text-gray-400">{width}px</span>
+          <span className="text-xs text-gray-400">
+            Size: <span className="text-gray-600 font-medium">{width}px</span>
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {users.slice(0, 5).map((u, i) => (
-            <span key={i} className={`font-mono text-xs ${u === username ? 'text-neon-green' : 'text-gray-500'}`}>
-              {u === username ? `${u} (you)` : u}
-            </span>
+            <div key={i}
+              className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+              style={{
+                background: u === username
+                  ? 'linear-gradient(135deg, #7C3AED, #EC4899)'
+                  : `hsl(${u.charCodeAt(0) * 47 % 360}, 70%, 55%)`,
+              }}
+              title={u === username ? `${u} (you)` : u}>
+              {u[0].toUpperCase()}
+            </div>
           ))}
           {users.length > 5 && (
-            <span className="font-mono text-xs text-gray-600">+{users.length - 5} more</span>
+            <span className="text-xs text-gray-400">+{users.length - 5}</span>
           )}
         </div>
       </div>
+
+      {/* Floating chat */}
+      <Chat
+        messages={messages}
+        onSend={handleChat}
+        username={username}
+        open={chatOpen}
+        onClose={() => setChatOpen(!chatOpen)}
+      />
     </div>
   )
 }
