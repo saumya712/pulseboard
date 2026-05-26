@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: pulseboard
+data:
+  PORT: ":8080"
+  APP_URL: "http://localhost"
+  ENV: "production"
+  MAX_EVENTS_PER_ROOM: "5000"

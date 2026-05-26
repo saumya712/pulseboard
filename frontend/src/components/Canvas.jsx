@@ -25,7 +25,7 @@ export default function Canvas({ tool, color, width, onDrawEvent, onDrawRef }) {
   }, [])
 
   const drawShape = (ctx, payload) => {
-    ctx.strokeStyle = payload.tool === 'eraser' ? '#0a0a0f' : payload.color
+    ctx.strokeStyle = payload.tool === 'eraser' ? '#ffffff' : payload.color
     ctx.lineWidth   = payload.width
     ctx.lineCap     = 'round'
     ctx.lineJoin    = 'round'
